@@ -1,5 +1,8 @@
 import boto3
 import sys
+import argparse
+from datetime import datetime
+import pytz
 from botocore.session import Session as BotocoreSession
 import os
 import configparser
@@ -110,10 +113,16 @@ def get_session_token_with_mfa(mfa_serial_number, mfa_token_code, region_name, p
             DurationSeconds=duration_seconds
         )
         credentials = response['Credentials']
-        print("AccessKeyId:", credentials['AccessKeyId'])
-        print("SecretAccessKey:", credentials['SecretAccessKey'])
-        print("SessionToken:", credentials['SessionToken'])
-        print("Expiration:", credentials['Expiration'])
+        utc_expiration = datetime.strptime(str(credentials['Expiration']), "%Y-%m-%d %H:%M:%S%z")
+        # Convert UTC time to IST
+        ist_expiration = utc_expiration.astimezone(pytz.timezone('Asia/Kolkata'))
+
+        # Format the IST time string
+        ist_expiration_str = ist_expiration.strftime('%Y-%m-%d %H:%M:%S %Z')
+        # print("AccessKeyId:", credentials['AccessKeyId'])
+        # print("SecretAccessKey:", credentials['SecretAccessKey'])
+        # print("SessionToken:", credentials['SessionToken'])
+        print("Expiration:", ist_expiration_str)
         # Save credentials to file
         save_to_aws_credentials(
             profile_name,
@@ -139,6 +148,16 @@ def get_session_token_with_mfa(mfa_serial_number, mfa_token_code, region_name, p
 
 if __name__ == "__main__":
     try:
+        parser = argparse.ArgumentParser(description="Get AWS session token with MFA.")
+        parser.add_argument(
+            "--duration",
+            type=int,
+            default=129600,
+            help="Session duration in seconds (min. value 900 max. value 129600, default: 129600)"
+        )
+        args = parser.parse_args()
+        duration_seconds = args.duration
+
         available_profiles = boto3.session.Session().available_profiles
 
         profile = input("Enter preferred awscli profile (leave blank for 'default'): ").strip()
@@ -172,16 +191,14 @@ if __name__ == "__main__":
         if region_missing or serial_missing:
             save_to_aws_config(profile, region, serial_number)
 
-        # Ask for duration
-        duration_input = input("Enter session duration in seconds (default 3600): ").strip()
-        try:
-            duration_seconds = int(duration_input) if duration_input else 3600
-        except ValueError:
-            print("Invalid input. Using default duration of 3600 seconds.")
-            duration_seconds = 3600
-
         token_code = input("Enter current MFA code: ").strip()
-        get_session_token_with_mfa(serial_number, token_code, region, profile, duration_seconds=duration_seconds)
+        get_session_token_with_mfa(
+            serial_number,
+            token_code,
+            region,
+            profile,
+            duration_seconds=duration_seconds
+        )
 
     except KeyboardInterrupt:
         print("\nOperation cancelled by user.")

@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/fba4541d-bc01-4791-9d63-7c7a561ad3c8)# aws-mfa (mfa.py)
+# aws-mfa (mfa.py)
 
 Prerequisites
 This script is built on python on version 3.12.3
@@ -15,18 +15,18 @@ This script tool is based on python which allows our aws iam user to connect to 
 
 
 The current info in aws config & credentials only contains basic information required by awscli.
-![alt text](image.png)
+![alt text](<screenshots/Screenshot from 2025-06-04 10-01-26.png>)
 
 When running the script with # python3 mfa.py. Script will analyse current info in the local files and ask for input accordingly.
-![alt text](image-1.png)
+![alt text](<screenshots/Screenshot from 2025-06-04 10-11-31.png>)
 Once all corect input is provided, script will save temporary credentials in credentials file and mfa_serial in config file which can be checked in file.
 
 Original credentials are stored in [{profile}::source-profile] & temporary credentials stored in [{profile}].
-![alt text](image-3.png)
+![alt text](<screenshots/Screenshot from 2025-06-04 10-18-04.png>)
 
 
 When the temporary credentials are expired and user wants to generate new credentials, just run the script again with [python3 mfa.py]. This script will autmatically replace old credentials with new one.
-![alt text](image-4.png).
+![alt text](<screenshots/Screenshot from 2025-06-04 12-07-10.png>)
 
 
 Note: Run this script from same directory where script is there or give full path of script.
